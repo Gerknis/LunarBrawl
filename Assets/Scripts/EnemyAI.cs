@@ -20,6 +20,8 @@ public class EnemyAI : MonoBehaviour
     public Transform groundCheck;
     [HideInInspector] public bool mustPatrol;
     [SerializeField] private float rayToGroundDistance;
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private float patrolSpeed;
 
     public int damage;
 
@@ -59,7 +61,14 @@ public class EnemyAI : MonoBehaviour
         }
         if (mustPatrol)
         {
-            rb.velocity = new Vector2(1 * speed * Time.deltaTime, rb.velocity.y);
+            if(movingRight)
+            {
+                rb.velocity = new Vector2(+patrolSpeed * Time.deltaTime, rb.velocity.y);
+            }
+            else
+            {
+                rb.velocity = new Vector2(-patrolSpeed * Time.deltaTime, rb.velocity.y);
+            }
         }
         if (canRun)
         {
@@ -111,7 +120,23 @@ public class EnemyAI : MonoBehaviour
             currentWaypoint++;
         }
         canRun = Physics2D.OverlapCircle(transform.position, checkRadius, whoIsPlayer);
-        RaycastHit2D groundInfo = Physics2D.Raycast(groundCheck.position, Vector2.down, rayToGroundDistance);
+        RaycastHit2D groundInfo = Physics2D.Raycast(groundCheck.position, Vector2.down, rayToGroundDistance, whatIsGround);
+        if(mustPatrol)
+        {
+            if (groundInfo.collider == false)
+            {
+                if (movingRight == true)
+                {
+                    transform.eulerAngles = new Vector3(0, 0, 0);
+                    movingRight = false;
+                }
+                else
+                {
+                    transform.eulerAngles = new Vector3(0, -180, 0);
+                    movingRight = true;
+                }
+            }
+        }
     }
     public void OnDrawGizmosSelected()
     {
